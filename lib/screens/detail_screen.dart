@@ -15,6 +15,7 @@ class DetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pokémon Detail'),
+        backgroundColor: Colors.red.shade900,
         automaticallyImplyLeading: false,
       ),
       body: Padding(
@@ -22,9 +23,17 @@ class DetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Image.network(
+                pokemon.imageUrl,
+                width: 200,
+                height: 200,
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
               pokemon.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -64,6 +73,7 @@ class DetailScreen extends StatelessWidget {
           context.read<PokemonCubit>().fetchAllPokemons();
         },
         child: const Icon(Icons.arrow_back),
+        backgroundColor: Colors.red.shade900,
       ),
     );
   }

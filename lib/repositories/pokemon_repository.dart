@@ -39,19 +39,17 @@ class PokemonRepository {
       final List<dynamic> abilities = data['abilities'];
       final List pokemonAbilities =
           abilities.map((ability) => ability['ability']['name']).toList();
-      final String ability = pokemonAbilities.join(', ');
       final List<dynamic> types = data['types'];
       final List pokemonTypes =
           types.map((type) => type['type']['name']).toList();
-      final String type = pokemonTypes.join(', ');
       final String height = data['height'].toString();
       final String weight = data['weight'].toString();
 
       return Pokemon(
         name: name,
         imageUrl: imageUrl,
-        ability: ability,
-        type: type,
+        ability: pokemonAbilities.join(', '),
+        type: pokemonTypes.join(', '),
         height: height,
         weight: weight,
       );

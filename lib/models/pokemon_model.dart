@@ -22,6 +22,4 @@ class Pokemon extends Equatable {
 
   @override
   bool get stringify => true;
-
-  get image => null;
 }

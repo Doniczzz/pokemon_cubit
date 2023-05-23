@@ -5,6 +5,8 @@ import 'package:pokemon_cubit/models/pokemon_state.dart';
 
 class PokemonCubit extends Cubit<PokemonState> {
   final PokemonRepository _pokemonRepository;
+  Pokemon?
+      selectedPokemon; // Nuevo atributo para almacenar el Pokémon seleccionado
 
   PokemonCubit({required PokemonRepository pokemonRepository})
       : _pokemonRepository = pokemonRepository,
@@ -24,6 +26,7 @@ class PokemonCubit extends Cubit<PokemonState> {
     try {
       final Pokemon pokemon =
           await _pokemonRepository.fetchPokemonDetails(pokemonName);
+      selectedPokemon = pokemon; // Actualiza el Pokémon seleccionado
       emit(PokemonDetailsLoaded(pokemon));
     } catch (e) {
       emit(const PokemonError('Failed to fetch pokemon details'));

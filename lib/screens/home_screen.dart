@@ -7,66 +7,125 @@ import 'package:pokemon_cubit/screens/detail_screen.dart';
 import '../models/pokemon_state.dart';
 
 class HomeScreen extends StatelessWidget {
-  // ignore: use_key_in_widget_constructors
-  const HomeScreen({Key? key});
-
   @override
   Widget build(BuildContext context) {
+    final pokemonCubit = BlocProvider.of<PokemonCubit>(context);
+    final searchController = TextEditingController();
+
+    void searchPokemon(String pokemonName) async {
+      await pokemonCubit.fetchPokemonDetails(pokemonName);
+      final state = pokemonCubit.state;
+
+      if (state is PokemonDetailsLoaded) {
+        // Navigate to the details screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(pokemon: state.pokemon),
+          ),
+        ).then((value) {
+          // Fetch all the pokémons again after returning from the details screen
+          pokemonCubit.fetchAllPokemons();
+        });
+      } else {
+        // Show an AlertDialog if the Pokémon does not exist
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Pokémon Not Found'),
+            content:
+                Text('The Pokémon with name "$pokemonName" does not exist.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        ).then((value) {
+          // Fetch all the pokémons again after closing the AlertDialog
+          pokemonCubit.fetchAllPokemons();
+        });
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pokémon Challenge'),
+        title: Text(
+          'Pokémon List',
+          style: TextStyle(
+            fontFamily: 'PokemonSolid',
+            fontSize: 26,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.red.shade900,
       ),
-      body: BlocBuilder<PokemonCubit, PokemonState>(
-        builder: (context, state) {
-          if (state is PokemonLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (state is PokemonLoaded) {
-            return CustomScrollView(
-              slivers: [
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final pokemon = state.pokemons[index];
-                      return ListTile(
-                        title: Text(pokemon.name),
-                        onTap: () {
-                          _navigateToDetailScreen(context, pokemon);
-                        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: 'Search Pokémon',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onSubmitted: (value) {
+                searchPokemon(value.trim());
+              },
+            ),
+          ),
+          Expanded(
+            child: BlocBuilder<PokemonCubit, PokemonState>(
+              builder: (context, state) {
+                if (state is PokemonLoaded) {
+                  return ListView.builder(
+                    itemCount: state.pokemons.length,
+                    itemBuilder: (context, index) {
+                      final Pokemon pokemon = state.pokemons[index];
+                      return Card(
+                        color: Colors.red.shade100,
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: ListTile(
+                          title: Text(
+                            pokemon.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          onTap: () {
+                            searchPokemon(pokemon.name);
+                          },
+                        ),
                       );
                     },
-                    childCount: state.pokemons.length,
-                  ),
-                ),
-              ],
-            );
-          } else {
-            return const Center(
-              child: Text('Failed to fetch pokemons.'),
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  void _navigateToDetailScreen(BuildContext context, Pokemon pokemon) {
-    context.read<PokemonCubit>().fetchPokemonDetails(pokemon.name);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BlocBuilder<PokemonCubit, PokemonState>(
-          builder: (context, state) {
-            if (state is PokemonDetailsLoaded) {
-              return DetailScreen(pokemon: state.pokemon);
-            } else {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
-        ),
+                  );
+                } else if (state is PokemonError) {
+                  return Center(
+                    child: Text(
+                      state.errorMessage,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.red,
+                      ),
+                    ),
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
